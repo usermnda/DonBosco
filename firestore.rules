@@ -1,0 +1,16 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+    function staff() {
+      return request.auth != null && exists(/databases/$(db)/documents/staff/$(request.auth.uid));
+    }
+    // Contenu public du site (sans comptes ni mots de passe)
+    match /site/config { allow read: if true; allow write: if staff(); }
+    // Comptes du manager : réservé à l'équipe
+    match /site/private { allow read, write: if staff(); }
+    // Photos
+    match /media/{id} { allow read: if true; allow write: if staff(); }
+    // Liste du personnel autorisé : créée à la main dans la console
+    match /staff/{uid} { allow read: if request.auth != null && request.auth.uid == uid; allow write: if false; }
+  }
+}
