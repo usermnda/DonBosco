@@ -10,7 +10,14 @@ service cloud.firestore {
     match /site/private { allow read, write: if staff(); }
     // Photos
     match /media/{id} { allow read: if true; allow write: if staff(); }
-    // Liste du personnel autorisé : créée à la main dans la console
+    // Statistiques : les visiteurs ne peuvent qu'incrémenter des compteurs
+    match /stats/{day} {
+      allow read: if staff();
+      allow create, update: if staff() || (request.resource.data.keys().hasOnly(['day','views','visitors','clicks','pages','ev']) && request.resource.data.day == day);
+    }
+    // Activité du manager
+    match /mstats/{day} { allow read, write: if staff(); }
+    // Personnel autorisé : documents créés à la main dans la console (ID = UID du compte)
     match /staff/{uid} { allow read: if request.auth != null && request.auth.uid == uid; allow write: if false; }
   }
 }
