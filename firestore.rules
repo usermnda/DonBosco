@@ -1,8 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{db}/documents {
+    // Ajoutez ici les e-mails autorisés à publier : ['dev@ebwebs.org','direction@exemple.fr']
     function staff() {
-      return request.auth != null && exists(/databases/$(db)/documents/staff/$(request.auth.uid));
+      return request.auth != null && (
+        request.auth.token.email in ['dev@ebwebs.org']
+        || exists(/databases/$(db)/documents/staff/$(request.auth.uid))
+      );
     }
     // Contenu public du site (sans comptes ni mots de passe)
     match /site/config { allow read: if true; allow write: if staff(); }
